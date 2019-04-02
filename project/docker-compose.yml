@@ -1,0 +1,43 @@
+version: '3'
+
+services: 
+
+  node_api:
+   image: node-api
+   container_name: node_app 
+   ports:
+     - 8000:8000
+
+  prometheus:
+   image: my-prom 
+   container_name: prometheus
+   ports:
+     - 9090:9090
+   depends_on:
+     - node_api
+
+  grafana:
+   image: my-grafana
+   container_name: grafana
+   ports:
+     - 3000:3000
+   volumes: 
+     - /home/ziv/project/grafana/provisioning/datasource/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+     - /home/ziv/project/grafana/provisioning/dashboards/all.yml:/etc/grafana/provisioning/dashboards/all.yml
+     - /home/ziv/project/grafana/dashboards:/var/lib/grafana/dashboards
+   depends_on:
+     - prometheus
+
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+      - node_api
